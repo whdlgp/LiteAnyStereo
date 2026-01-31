@@ -1,14 +1,6 @@
 <h1 align='center' style="text-align:center; font-weight:bold; font-size:2.0em;letter-spacing:2.0px;">
 Lite Any Stereo: Efficient Zero-Shot Stereo Matching<h1>  
 
-
-[**Junpeng Jing**](https://tomtomtommi.github.io/),
-[**Weixun Luo**](https://scholar.google.com/citations?user=2Y0-0C8AAAAJ&hl=en),
-[**Ye Mao**](https://yebulabula.github.io/),
-[**Krystian Mikolajczyk**](https://www.imperial.ac.uk/people/k.mikolajczyk)
-
-Imperial College London
-
 <div align="center">
   <a href="https://arxiv.org/abs/2511.16555" target="_blank" rel="external nofollow noopener">
   <img src="https://img.shields.io/badge/Paper-Lite Any Stereo-red" alt="Paper arXiv"></a>
