@@ -1,14 +1,10 @@
 <h1 align='center' style="text-align:center; font-weight:bold; font-size:2.0em;letter-spacing:2.0px;">
 Lite Any Stereo: Efficient Zero-Shot Stereo Matching<h1>      
-<p align='center' style="text-align:center;">
-<small>
-    <a href="https://tomtomtommi.github.io/" target="_blank" style="text-decoration: none;">Junpeng Jing</a>,&nbsp;
-    <a href="https://scholar.google.com/citations?user=2Y0-0C8AAAAJ&hl=en" target="_blank" style="text-decoration: none;">Weixun Luo</a>,&nbsp;
-    <a href="https://yebulabula.github.io/" target="_blank" style="text-decoration: none;">Ye Mao</a>,&nbsp;
-    <a href="https://www.imperial.ac.uk/people/k.mikolajczyk"  target="_blank" style="text-decoration: none;">Krystian Mikolajczyk</a>&nbsp;<br/>
-&nbsp;Imperial College London
-<small>
-<br/>
+
+<div align="center" style="font-size:14px; margin-top:8px;">
+  Junpeng Jing · Weixun Luo · Ye Mao · Krystian Mikolajczyk<br/>
+  Imperial College London
+</div>
 
 <div align="center">
   <a href="https://arxiv.org/abs/2511.16555" target="_blank" rel="external nofollow noopener">
