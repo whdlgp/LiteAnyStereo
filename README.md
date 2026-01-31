@@ -3,14 +3,14 @@ Lite Any Stereo: Efficient Zero-Shot Stereo Matching<h1>
 
 <div align="center">
   <a href="https://arxiv.org/abs/2511.16555" target="_blank" rel="external nofollow noopener">
-  <img src="https://img.shields.io/badge/Paper-arXiv-deepgreen" alt="Paper arXiv"></a>
-  <a href="https://tomtomtommi.github.io/LiteAnyStereo/" target="_blank" rel="external nofollow noopener">
-  <img src="https://img.shields.io/badge/Project-Page-9cf" alt="Project Page"></a>
+  <img src="https://img.shields.io/badge/Paper-Lite Any Stereo-red" alt="Paper arXiv"></a>
+  <a href='https://tomtomtommi.github.io/LiteAnyStereo/'><img src='https://img.shields.io/badge/Project_Page-Lite Any Stereo-deepgreen' alt='Project Page'></a>
 </div>
 </p>
 
 
-![Reading](./assets/fig1.png)
+![teaser](./assets/fig1.png)
+
 
 ## Demo 
 Several example stereo image pairs are provided in the `/assets/` directory. 
