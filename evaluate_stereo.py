@@ -8,14 +8,28 @@ import time
 import logging
 import numpy as np
 import torch
+from tqdm import tqdm
 from core.liteanystereo import LiteAnyStereo
 import core.stereo_datasets as datasets
 from core.utils.utils import InputPadder
 from PIL import Image
+import torch.utils.data as data
+import matplotlib.pyplot as plt
 
 
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+
+def measure_inference_time(model, image1, image2, max_disp):
+    if device.type == 'cuda':
+        torch.cuda.synchronize(device)
+    start = time.perf_counter()
+    flow_pr = model(image1, image2, max_disp=max_disp, test_mode=True)
+    if device.type == 'cuda':
+        torch.cuda.synchronize(device)
+    end = time.perf_counter()
+    return flow_pr, end - start
 
 
 @torch.no_grad()
@@ -34,7 +48,7 @@ def validate_eth3d(model):
         padder = InputPadder(image1.shape, divis_by=32)
         image1, image2 = padder.pad(image1, image2)
 
-        flow_pr = model(image1, image2, args.max_disp, test_mode=True)
+        flow_pr = model(image1, image2, max_disp=args.max_disp, test_mode=True)
         flow_pr = padder.unpad(flow_pr.float()).cpu().squeeze(0)
         assert flow_pr.shape == flow_gt.shape, (flow_pr.shape, flow_gt.shape)
         epe = torch.sum((flow_pr - flow_gt)**2, dim=0).sqrt()
@@ -81,12 +95,10 @@ def validate_kitti(model, year=2015):
         padder = InputPadder(image1.shape, divis_by=32)
         image1, image2 = padder.pad(image1, image2)
 
-        start = time.perf_counter()
-        flow_pr = model(image1, image2, max_disp=args.max_disp, test_mode=True)
-        end = time.perf_counter()
+        flow_pr, elapsed = measure_inference_time(model, image1, image2, args.max_disp)
 
         if val_id > 50:
-            elapsed_list.append(end-start)
+            elapsed_list.append(elapsed)
         flow_pr = padder.unpad(flow_pr).cpu().squeeze(0)
 
         assert flow_pr.shape == flow_gt.shape, (flow_pr.shape, flow_gt.shape)
@@ -103,6 +115,12 @@ def validate_kitti(model, year=2015):
         # Apply only to valid pixels
         epe_list.append(epe_flattened[val].mean().item())
         d1_list.append(d1_mask[val].cpu().numpy())
+
+        # Visualization
+        # file_stem = imageL_file[0].split('/')[-1]
+        # per_img_d1 = d1_mask[val].float().mean().item() * 100.0
+        # filename = os.path.join("./kitti15_stage1/", f"{file_stem}_{per_img_d1:.3f}.png")
+        # plt.imsave(filename, flow_pr.squeeze(), cmap='jet')
 
     epe = np.mean(epe_list)
     d1 = 100 * np.mean(np.concatenate(d1_list))
@@ -128,7 +146,7 @@ def validate_middlebury(model, split='MiddEval3', resolution='F'):
         padder = InputPadder(image1.shape, divis_by=32)
         image1, image2 = padder.pad(image1, image2)
 
-        flow_pr = model(image1, image2, args.max_disp, test_mode=True)
+        flow_pr = model(image1, image2,  max_disp=args.max_disp, test_mode=True)
         flow_pr = padder.unpad(flow_pr).cpu().squeeze(0)
 
         assert flow_pr.shape == flow_gt.shape, (flow_pr.shape, flow_gt.shape)
@@ -174,12 +192,10 @@ def validate_driving(model, split='cloudy'):
         padder = InputPadder(image1.shape, divis_by=32)
         image1, image2 = padder.pad(image1, image2)
 
-        start = time.time()
-        flow_pr = model(image1, image2, test_mode=True)
-        end = time.time()
+        flow_pr, elapsed = measure_inference_time(model, image1, image2, args.max_disp)
 
         if val_id > 50:
-            elapsed_list.append(end - start)
+            elapsed_list.append(elapsed)
         flow_pr = padder.unpad(flow_pr).cpu().squeeze(0)
 
         assert flow_pr.shape == flow_gt.shape, (flow_pr.shape, flow_gt.shape)
@@ -205,14 +221,80 @@ def validate_driving(model, split='cloudy'):
     return {'drivingstereo-epe': epe, 'drivingstereo-d1': d1}
 
 
+@torch.no_grad()
+def benchmark_runtime(model, dataset_name, warmup=10, samples=50):
+    model.eval()
+    aug_params = {}
+
+    if dataset_name == 'kitti':
+        val_dataset = datasets.KITTI(aug_params, image_set='training', year=2015)
+    elif dataset_name == 'eth3d':
+        val_dataset = datasets.ETH3D(aug_params)
+    elif dataset_name == 'drivingstereo':
+        val_dataset = datasets.DrivingStereoWeather(aug_params, image_set='cloudy')
+    elif dataset_name == 'sceneflow':
+        val_dataset = datasets.SceneFlowDatasets(aug_params, dstype='frames_finalpass')
+    elif dataset_name in [f"middlebury_{s}" for s in 'FHQ']:
+        val_dataset = datasets.Middlebury(aug_params, split='MiddEval3', resolution=dataset_name[-1])
+    else:
+        raise ValueError(f"Runtime benchmark is not implemented for dataset: {dataset_name}")
+
+    total_needed = warmup + samples
+    if len(val_dataset) < total_needed:
+        raise ValueError(
+            f"Dataset {dataset_name} only has {len(val_dataset)} samples, but "
+            f"{total_needed} are required for warmup={warmup} and samples={samples}."
+        )
+
+    torch.backends.cudnn.benchmark = (device.type == 'cuda')
+    elapsed_list = []
+
+    for val_id in range(total_needed):
+        _, image1, image2, _, _ = val_dataset[val_id]
+
+        image1 = image1[None].to(device)
+        image2 = image2[None].to(device)
+
+        padder = InputPadder(image1.shape, divis_by=32)
+        image1, image2 = padder.pad(image1, image2)
+
+        _, elapsed = measure_inference_time(model, image1, image2, args.max_disp)
+        if val_id >= warmup:
+            elapsed_list.append(elapsed)
+
+    elapsed_array = np.array(elapsed_list, dtype=np.float64)
+    avg_runtime = float(elapsed_array.mean())
+    median_runtime = float(np.median(elapsed_array))
+
+    print(
+        f"Runtime benchmark on {dataset_name}: "
+        f"mean {avg_runtime:.4f}s ({1.0 / avg_runtime:.2f} FPS), "
+        f"median {median_runtime:.4f}s ({1.0 / median_runtime:.2f} FPS), "
+        f"warmup={warmup}, samples={samples}, device={device}, max_disp={args.max_disp}"
+    )
+    return {
+        'runtime-mean': avg_runtime,
+        'runtime-median': median_runtime,
+    }
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--restore_ckpt', help="restore checkpoint", default='./pretrained_models/sceneflow.pth')
-    parser.add_argument('--dataset', help="dataset for evaluation", choices=["eth3d", "kitti", "drivingstereo"] + [f"middlebury_{s}" for s in 'FHQ'])
+    parser.add_argument('--dataset', help="dataset for evaluation", default='sceneflow', choices=["eth3d", "kitti", "sceneflow", "drivingstereo"] + [f"middlebury_{s}" for s in 'FHQ'])
+    parser.add_argument('--device', default='cuda', choices=['cpu', 'cuda'])
+    parser.add_argument('--runtime_only', action='store_true', help="benchmark inference runtime only")
+    parser.add_argument('--warmup', type=int, default=10, help="number of warmup samples to skip for runtime benchmark")
+    parser.add_argument('--runtime_samples', type=int, default=50, help="number of timed samples for runtime benchmark")
+
+    # Architecure choices
     parser.add_argument('--max_disp', type=int, default=192, help="max disp of geometry encoding volume")
     args = parser.parse_args()
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda' if (args.device == 'cuda' and torch.cuda.is_available()) else 'cpu')
+    if device.type == 'cpu':
+        torch.set_num_threads(os.cpu_count())
+        torch.set_num_interop_threads(1)
 
     model = LiteAnyStereo()
 
@@ -233,6 +315,10 @@ if __name__ == '__main__':
 
     print(f"The model has {format(count_parameters(model)/1e6, '.2f')}M learnable parameters.")
 
+    if args.runtime_only:
+        benchmark_runtime(model, args.dataset, warmup=args.warmup, samples=args.runtime_samples)
+        sys.exit(0)
+
     if args.dataset == 'eth3d':
         validate_eth3d(model)
 
@@ -242,6 +328,9 @@ if __name__ == '__main__':
 
     elif args.dataset in [f"middlebury_{s}" for s in 'FHQ']:
         validate_middlebury(model, resolution=args.dataset[-1])
+
+    elif args.dataset == 'sceneflow':
+        validate_sceneflow(model)
 
     elif args.dataset == 'drivingstereo':
         validate_driving(model, split='cloudy')
