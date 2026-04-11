@@ -9,8 +9,6 @@ Lite Any Stereo: Efficient Zero-Shot Stereo Matching<h1>
 </p>
 
 
-![teaser](./assets/fig1.png)
-
 <img src="./assets/flower.gif" alt="drawing" width="400"/> <img src="./assets/motorbike.gif" alt="drawing" width="400"/>
 
 ###
