@@ -28,7 +28,7 @@ This repository serves as the shared codebase for the LAS series. It currently c
 ## Performance Snapshot
 
 <p align="center">
-  <img src="./assets/fig2.png" alt="LAS series performance comparison across zero-shot stereo benchmarks" width="720">
+  <img src="./assets/fig2.png" alt="LAS series performance comparison across zero-shot stereo benchmarks" width="560">
 </p>
 
 <p align="center">
