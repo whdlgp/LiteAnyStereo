@@ -32,7 +32,7 @@ This repository serves as the shared codebase for the LAS series. It currently c
 </p>
 
 <p align="center">
-  <em>Zero-shot performance and runtime comparison across KITTI, Middlebury, and ETH3D. Runtime is reported on H200 / Orin.</em>
+  <em>Zero-shot performance and runtime comparison. Runtime is reported on H200 / Orin.</em>
 </p>
 
 ## Released Code: LAS1
