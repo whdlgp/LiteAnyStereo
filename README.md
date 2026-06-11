@@ -2,37 +2,44 @@
 
 <p align="center">
   <a href="https://arxiv.org/abs/2511.16555" target="_blank" rel="external nofollow noopener">
-  <img src="https://img.shields.io/badge/LAS-Paper%20%28arXiv%29-red" alt="LAS paper arXiv"></a>
-  <a href="https://tomtomtommi.github.io/LiteAnyStereo/"><img src="https://img.shields.io/badge/LAS-Project%20Page-deepgreen" alt="LAS Project Page"></a>
-  <a href="https://tomtomtommi.github.io/LiteAnyStereoV2/"><img src="https://img.shields.io/badge/LAS%20V2-Project%20Page-blue" alt="LAS V2 Project Page"></a>
+  <img src="https://img.shields.io/badge/LAS1-Paper%20%28arXiv%29-red" alt="LAS1 paper arXiv"></a>
+  <a href="https://tomtomtommi.github.io/LiteAnyStereo/"><img src="https://img.shields.io/badge/LAS1-Project%20Page-deepgreen" alt="LAS1 Project Page"></a>
+  <a href="https://tomtomtommi.github.io/LiteAnyStereoV2/"><img src="https://img.shields.io/badge/LAS2-Project%20Page-blue" alt="LAS2 Project Page"></a>
 </p>
 
 <p align="center">
-  <strong>Official codebase for the Lite Any Stereo series.</strong><br>
-  Efficient zero-shot stereo matching for practical deployment.
+  <strong>Official codebase for the Lite Any Stereo (LAS) series.</strong><br>
+  LAS1 code is available now. LAS2 paper and code are coming soon.
 </p>
 
 ## Overview
 
-This repository is the home of the **Lite Any Stereo (LAS) series**. It currently contains the released code, checkpoints, demos, and evaluation scripts for **Lite Any Stereo (LAS/V1)**. The upcoming **Lite Any Stereo V2 (LAS2)** code release will also be added here, so this repository should be used as the code link for the LAS series.
+**Lite Any Stereo (LAS)** is a series of efficient zero-shot stereo matching models for practical deployment.
 
-## News
-
-- **LAS V2 is finished.** Please visit the [LAS V2 project page](https://tomtomtommi.github.io/LiteAnyStereoV2/) for the latest results and interactive comparisons.
-- The **LAS V2 paper and code are coming soon** and will be released in this repository.
+This repository serves as the shared codebase for the LAS series. It currently contains the released code, checkpoints, demos, and evaluation scripts for **Lite Any Stereo (LAS1)**. The upcoming **Lite Any Stereo V2 (LAS2)** paper and code will also be released here.
 
 ## LAS Series
 
-| Method | Paper | Project Page | Code |
+| Version | Title | Resources | Status |
 | --- | --- | --- | --- |
-| Lite Any Stereo (LAS/V1) | [arXiv](https://arxiv.org/abs/2511.16555) / CVPR 2026 | [Project page](https://tomtomtommi.github.io/LiteAnyStereo/) | This repository |
-| Lite Any Stereo V2 (LAS2) | Coming soon | [Project page](https://tomtomtommi.github.io/LiteAnyStereoV2/) | Coming soon in this repository |
+| LAS1 | Lite Any Stereo: Efficient Zero-Shot Stereo Matching | [Paper](https://arxiv.org/abs/2511.16555), [Project page](https://tomtomtommi.github.io/LiteAnyStereo/) | Code released |
+| LAS2 | Lite Any Stereo V2: Faster and Stronger Efficient Zero-Shot Stereo Matching | [Project page](https://tomtomtommi.github.io/LiteAnyStereoV2/) | Finished; paper/code coming soon |
 
-## Released Code: LAS/V1
+## Performance Snapshot
 
-Lite Any Stereo (LAS/V1) is a highly efficient stereo matching model with strong zero-shot generalization ability. It outperforms or matches accuracy-oriented models that do not use foundation priors, while requiring less than 1% of their computational cost.
+<p align="center">
+  <img src="./assets/fig2.png" alt="LAS series performance comparison across zero-shot stereo benchmarks" width="720">
+</p>
 
-The instructions below are for the currently released LAS/V1 code.
+<p align="center">
+  <em>Zero-shot performance and runtime comparison across KITTI, Middlebury, and ETH3D. Runtime is reported on H200 / Orin.</em>
+</p>
+
+## Released Code: LAS1
+
+Lite Any Stereo (LAS1) is a highly efficient stereo matching model with strong zero-shot generalization ability. It outperforms or matches accuracy-oriented models that do not use foundation priors, while requiring less than 1% of their computational cost.
+
+The instructions below are for the currently released LAS1 code.
 
 ### Demo
 Several example stereo image pairs are provided in the `/assets/` directory. 
@@ -69,7 +76,7 @@ This script uses CUDA synchronization for more accurate latency measurement.
 The initial version followed the evaluation practice of previous methods and reported runtime using `evaluate_stereo.py`
 
 ## Citation
-If you find the released LAS/V1 code useful, please consider citing:
+If you find the released code useful, please consider citing:
 ```
 @InProceedings{Jing_2026_CVPR,
     author    = {Jing, Junpeng and Luo, Weixun and Mao, Ye and Mikolajczyk, Krystian},
@@ -81,4 +88,4 @@ If you find the released LAS/V1 code useful, please consider citing:
 }
 ```
 
-The LAS V2 citation will be added when the paper is available.
+The LAS2 citation will be added when the paper is available.
