@@ -35,7 +35,7 @@
 
 ## Checkpoints
 
-Place the pretrained checkpoints in `./checkpoints/`. The release uses these default names:
+Place the pretrained checkpoints in `./checkpoints/` ([Google Drive](https://drive.google.com/drive/folders/1UvDx296pVk7pC2rozKIpQF_EXcOleZOB?usp=sharing)). The release uses these default names:
 
 | Model | Default checkpoint |
 | --- | --- |
