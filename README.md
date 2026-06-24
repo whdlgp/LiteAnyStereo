@@ -125,7 +125,7 @@ If you find the released code useful, please consider citing:
     pages     = {21725-21735}
 }
 
-@InProceedings{jing2026litestereov2,
+@article{jing2026litestereov2,
       title={Lite Any Stereo V2: Faster and Stronger Efficient Zero-Shot Stereo Matching}, 
       author={Junpeng Jing and Ronglai Zuo and Zhelun Shen and Shangchen Zhou and Rolandos Alexandros Potamias and Stefanos Zafeiriou and Krystian Mikolajczyk and Jiankang Deng},
       year={2026},
