@@ -1,29 +1,27 @@
-<h1 align="center">Lite Any Stereo (LAS) Series</h1>
+<h1 align="center">Lite Any Stereo Series</h1>
 
 <p align="center">
   <a href="https://arxiv.org/abs/2511.16555" target="_blank" rel="external nofollow noopener">
-  <img src="https://img.shields.io/badge/LAS1-Paper%20%28arXiv%29-red" alt="LAS1 paper arXiv"></a>
+  <img src="https://img.shields.io/badge/LAS1-Paper-red" alt="LAS1 paper arXiv"></a>
   <a href="https://tomtomtommi.github.io/LiteAnyStereo/"><img src="https://img.shields.io/badge/LAS1-Project%20Page-deepgreen" alt="LAS1 Project Page"></a>
+  <a href="https://arxiv.org/abs/2606.24457" target="_blank" rel="external nofollow noopener">
+  <img src="https://img.shields.io/badge/LAS2-Paper-red" alt="LAS1 paper arXiv"></a>
   <a href="https://tomtomtommi.github.io/LiteAnyStereoV2/"><img src="https://img.shields.io/badge/LAS2-Project%20Page-blue" alt="LAS2 Project Page"></a>
 </p>
 
 <p align="center">
   <strong>Official codebase for the Lite Any Stereo (LAS) series.</strong><br>
-  LAS1 code is available now. LAS2 paper and code are coming soon.
+  This repository supports LAS1 and LAS2 S/M/L/H release models.
 </p>
 
+
 ## Overview
+**Lite Any Stereo** is a series of efficient zero-shot stereo matching models for practical deployment. This repository contains the public evaluation and inference code for **LAS1** and **LAS2**.
 
-**Lite Any Stereo (LAS)** is a series of efficient zero-shot stereo matching models for practical deployment.
-
-This repository serves as the shared codebase for the LAS series. It currently contains the released code, checkpoints, demos, and evaluation scripts for **Lite Any Stereo (LAS1)**. The upcoming **Lite Any Stereo V2 (LAS2)** paper and code will also be released here.
-
-## LAS Series
-
-| Version | Title | Resources | Status |
-| --- | --- | --- | --- |
-| LAS1 | Lite Any Stereo: Efficient Zero-Shot Stereo Matching | [Paper](https://arxiv.org/abs/2511.16555), [Project page](https://tomtomtommi.github.io/LiteAnyStereo/) | CVPR 2026 |
-| LAS2 | Lite Any Stereo V2: Faster and Stronger Efficient Zero-Shot Stereo Matching | [Project page](https://tomtomtommi.github.io/LiteAnyStereoV2/) | coming soon |
+| Version | Title | Resources |
+| --- | --- | --- |
+| LAS1 | [CVPR2026] Lite Any Stereo: Efficient Zero-Shot Stereo Matching | [Paper](https://arxiv.org/abs/2511.16555), [Project page](https://tomtomtommi.github.io/LiteAnyStereo/) |
+| LAS2 | Lite Any Stereo V2: Faster and Stronger Efficient Zero-Shot Stereo Matching | [Paper](https://arxiv.org/abs/2606.24457), [Project page](https://tomtomtommi.github.io/LiteAnyStereoV2/) |
 
 ## Performance Snapshot
 
@@ -32,53 +30,93 @@ This repository serves as the shared codebase for the LAS series. It currently c
 </p>
 
 <p align="center">
-  <em>Zero-shot performance and runtime comparison. Runtime is reported on H200 / Orin.</em>
+  <em>Zero-shot performance and runtime comparison. Runtime is reported on H200 / Orin 8G.</em>
 </p>
 
-## Released Code: LAS1
+## Checkpoints
 
-Lite Any Stereo (LAS1) is a highly efficient stereo matching model with strong zero-shot generalization ability. It outperforms or matches accuracy-oriented models that do not use foundation priors, while requiring less than 1% of their computational cost.
+Place the pretrained checkpoints in `./checkpoints/`. The release uses these default names:
 
-The instructions below are for the currently released LAS1 code.
+| Model | Default checkpoint |
+| --- | --- |
+| LAS1 | `./checkpoints/LiteAnyStereo.pth` |
+| LAS2-S | `./checkpoints/LAS2_S.pth` |
+| LAS2-M | `./checkpoints/LAS2_M.pth` |
+| LAS2-L | `./checkpoints/LAS2_L.pth` |
+| LAS2-H | `./checkpoints/LAS2_H.pth` |
 
-### Demo
-Several example stereo image pairs are provided in the `/assets/` directory. 
+LAS2 defaults to the M model when `--model_size` is not specified. You can always pass a checkpoint explicitly with `--restore_ckpt`.
 
-You can visualize zero-shot stereo matching results on real-world scenes by running:
-```
-python demo.py
-```
-You can also test the model on your own stereo image pairs by replacing the input images.
+## Demo
 
-### Checkpoint
-Before running the demo, please download the pretrained checkpoints from [Google Drive](https://drive.google.com/drive/folders/1UvDx296pVk7pC2rozKIpQF_EXcOleZOB?usp=sharing).
-Then place them in: `./checkpoints/`
+Several side-by-side stereo image pairs are provided in `./assets/`. Pass `--stereo_file` to use another pair. Run LAS1:
 
-### Benchmark Results
-To reproduce the benchmark results reported in Table 3 and Table 4 of the paper, run:
-```
-sh evaluate.sh
-```
-The results of [Lite-CREStereo++](https://github.com/TomTomTommi/LiteCREStereo_plusplus) can be reproduced here.
-
-### MACs
-To compute the model complexity (MACs), use:
-```
-python flops_count.py
+```bash
+python demo.py --version las1 --restore_ckpt ./checkpoints/LiteAnyStereo.pth
 ```
 
-### Runtime
-To measure the inference time, run:
+Run LAS2-M:
+
+```bash
+python demo.py --version las2 --model_size m --restore_ckpt ./checkpoints/LAS2_M.pth
 ```
-python profile_speed.py
+
+Run another LAS2 release model by changing `--model_size`:
+
+```bash
+python demo.py --version las2 --model_size h --restore_ckpt ./checkpoints/LAS2_H.pth
 ```
-This script uses CUDA synchronization for more accurate latency measurement.
-The initial version followed the evaluation practice of previous methods and reported runtime using `evaluate_stereo.py`
+
+The demo saves the disparity visualization, raw disparity array, and optional point-cloud outputs to `--out_dir`.
+
+## Evaluation
+
+To reproduce the benchmark evaluation commands, run:
+
+```bash
+VERSION=las1 sh evaluate.sh
+VERSION=las2 MODEL_SIZE=s sh evaluate.sh
+VERSION=las2 MODEL_SIZE=m sh evaluate.sh
+VERSION=las2 MODEL_SIZE=l sh evaluate.sh
+VERSION=las2 MODEL_SIZE=h sh evaluate.sh
+```
+
+You can also evaluate one dataset directly:
+
+```bash
+python evaluate_stereo.py --version las2 --model_size h --restore_ckpt ./checkpoints/LAS2_H.pth --dataset middlebury_H
+```
+
+Supported datasets are `middlebury_F`, `middlebury_H`, `middlebury_Q`, `eth3d`, `kitti`, and `drivingstereo`.
+
+## MACs
+
+To compute model complexity:
+
+```bash
+python flops_count.py --version las1
+python flops_count.py --version las2 --model_size m
+python flops_count.py --version las2 --model_size h
+```
+
+## Runtime
+
+To measure inference time:
+
+```bash
+python profile_speed.py --version las1
+python profile_speed.py --version las2 --model_size m
+python profile_speed.py --version las2 --model_size h
+```
+
+The runtime script uses CUDA synchronization when running on GPU.
 
 ## Citation
+
 If you find the released code useful, please consider citing:
-```
-@InProceedings{Jing_2026_CVPR,
+
+```bibtex
+@InProceedings{jing2026litestereo,
     author    = {Jing, Junpeng and Luo, Weixun and Mao, Ye and Mikolajczyk, Krystian},
     title     = {Lite Any Stereo: Efficient Zero-Shot Stereo Matching},
     booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
@@ -86,6 +124,14 @@ If you find the released code useful, please consider citing:
     year      = {2026},
     pages     = {21725-21735}
 }
-```
 
-The LAS2 citation will be added when the paper is available.
+@InProceedings{jing2026litestereov2,
+      title={Lite Any Stereo V2: Faster and Stronger Efficient Zero-Shot Stereo Matching}, 
+      author={Junpeng Jing and Ronglai Zuo and Zhelun Shen and Shangchen Zhou and Rolandos Alexandros Potamias and Stefanos Zafeiriou and Krystian Mikolajczyk and Jiankang Deng},
+      year={2026},
+      eprint={2606.24457},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2606.24457}, 
+}
+```

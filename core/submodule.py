@@ -118,6 +118,22 @@ def build_gwc_volume(refimg_fea, targetimg_fea, maxdisp, num_groups):
     volume = volume.contiguous()
     return volume
 
+
+def build_gwc_volume_fast(refimg_fea, targetimg_fea, maxdisp, num_groups):
+    B, C, H, W = refimg_fea.shape
+    assert C % num_groups == 0
+    channels_per_group = C // num_groups
+
+    ref_volume = refimg_fea.unsqueeze(2).expand(B, C, maxdisp, H, W)
+    padded_target = F.pad(targetimg_fea, (maxdisp - 1, 0, 0, 0))
+    unfolded_target = padded_target.unfold(3, W, 1)
+    target_volume = torch.flip(unfolded_target, [3]).permute(0, 1, 3, 2, 4)
+
+    ref_volume = ref_volume.view(B, num_groups, channels_per_group, maxdisp, H, W)
+    target_volume = target_volume.view(B, num_groups, channels_per_group, maxdisp, H, W)
+    volume = (ref_volume * target_volume).mean(dim=2)
+    return volume.contiguous()
+
 def groupwise_correlation_norm(fea1, fea2, num_groups):
     B, C, H, W = fea1.shape
     assert C % num_groups == 0

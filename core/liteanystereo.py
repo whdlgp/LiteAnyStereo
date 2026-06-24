@@ -8,9 +8,9 @@ from .aggregation import Aggregation2D
 
 
 class LiteAnyStereo(nn.Module):
-    def __init__(self):
+    def __init__(self, fnet_pretrained=True):
         super(LiteAnyStereo, self).__init__()
-        self.fnet = FeatureNet()
+        self.fnet = FeatureNet(pretrained=fnet_pretrained)
 
         self.cost_agg_2d = Aggregation2D(in_channels=48,
                                     left_att=True,
