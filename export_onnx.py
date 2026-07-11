@@ -7,6 +7,8 @@ from core.models import build_model, load_model_weights
 
 import torch.nn.functional as F
 import core.liteanystereov2 as liteanystereov2
+import core.liteanystereov2_H as liteanystereov2_H
+import core.submodule as submodule
 
 # F.unfold is not exportable to ONNX; replace it with an equivalent identity conv3x3.
 def _context_upsample(depth_low, up_weights):
@@ -34,6 +36,23 @@ def _build_correlation_volume(left_feature, right_feature, max_disp):
     return cost_volume.contiguous()
 
 
+# .unfold is not exportable to ONNX; replace it with an equivalent stack of slices.
+def _build_gwc_volume_fast(refimg_fea, targetimg_fea, maxdisp, num_groups):
+    B, C, H, W = refimg_fea.shape
+    assert C % num_groups == 0
+    channels_per_group = C // num_groups
+
+    ref_volume = refimg_fea.unsqueeze(2).expand(B, C, maxdisp, H, W)
+    padded_target = F.pad(targetimg_fea, (maxdisp - 1, 0, 0, 0))
+    unfolded_target = torch.stack([padded_target[:, :, :, i:i+W] for i in range(maxdisp)], dim=3)
+    target_volume = torch.flip(unfolded_target, [3]).permute(0, 1, 3, 2, 4)
+
+    ref_volume = ref_volume.view(B, num_groups, channels_per_group, maxdisp, H, W)
+    target_volume = target_volume.view(B, num_groups, channels_per_group, maxdisp, H, W)
+    volume = (ref_volume * target_volume).mean(dim=2)
+    return volume.contiguous()
+
+
 class Wrapper(nn.Module):
     """Bakes in max_disp/test_mode so the exported graph only takes (left, right)."""
     def __init__(self, model, max_disp):
@@ -50,8 +69,12 @@ class Wrapper(nn.Module):
 # - Export with fixed input shape.
 def export(version, model_size, restore_ckpt, width, height, max_disp, output_name):
     # Replace functions that not compatable with ONNX export with an equivalent fixed functions.
+    submodule.context_upsample = _context_upsample
     liteanystereov2.context_upsample = _context_upsample
+    liteanystereov2_H.context_upsample = _context_upsample
     liteanystereov2.build_correlation_volume = _build_correlation_volume
+    submodule.build_gwc_volume_fast = _build_gwc_volume_fast
+    liteanystereov2_H.build_gwc_volume_fast = _build_gwc_volume_fast
 
     # Load model
     model = build_model(version, model_size=model_size, max_disp=max_disp)
